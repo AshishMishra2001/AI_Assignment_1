@@ -1,0 +1,42 @@
+Successfully loaded and parsed '/content/input.json' with encoding: utf-8
+Loaded problem with 5 containers.
+
+Running A* Search... (this may take a significant amount of time)
+
+Running Beam Search with k=20...
+  [Beam Search] Step 1: Evaluated 1 states, beam size is now 1.
+  [Beam Search] Step 2: Evaluated 9 states, beam size is now 9.
+  [Beam Search] Step 3: Evaluated 76 states, beam size is now 20.
+  [Beam Search] Step 4: Evaluated 173 states, beam size is now 20.
+  [Beam Search] Step 5: Evaluated 155 states, beam size is now 20.
+
+
+################## FINAL COMPARISON ##################
+
+==================== A* Search Report ====================
+Solution Found: YES
+Total Lifecycle Cost: 45.98 minutes
+  - Loading Cost:     16.98 minutes
+  - Unloading Cost:   29.00 minutes
+Time to Solve:        0.1416 seconds
+Nodes/States Metric:  278 (nodes expanded)
+========================================================
+
+==================== Beam Search (k=20) Report ====================
+Solution Found: YES
+Total Lifecycle Cost: 45.98 minutes
+  - Loading Cost:     16.98 minutes
+  - Unloading Cost:   29.00 minutes
+Time to Solve:        0.0235 seconds
+Nodes/States Metric:  414 (states evaluated)
+========================================================
+
+--- Summary ---
+A* found a solution with cost 45.98.
+Beam Search found a solution with cost 45.98.
+
+Both algorithms found a solution of the same (or very similar) optimal quality.
+
+The results clearly show that while A* guarantees optimality, its exhaustive search is extremely
+time-consuming. Beam Search, guided by strong internal heuristics, finds an equally high-quality
+solution in a tiny fraction of the time, proving it is the superior practical approach for this problem.

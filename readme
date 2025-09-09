@@ -1,0 +1,87 @@
+# Container Loading Optimization – A Comparative Heuristic Search Solution
+
+**AI Assignment 1 | Ashish Mishra | MT24020**
+
+---
+
+### **1. Overview**
+
+This assignment contains the solution to the complex challenge of optimizing container loading on a ship. Our goal is to determine a near-optimal 3D placement for each container to minimize the **Total Lifecycle Cost**, a metric that includes both the initial loading time and the subsequent unloading time at different ports.
+
+My solution implements and compares two powerful search algorithms: **A\* Search** (for optimality) and **Beam Search** (for practical scenarios and high performance). The program reads a detailed problem instance from a JSON file and respects a sophisticated set of constraints, including dynamic 3D ship balance (using Center of Mass) and a multi-layered destination ordering rule. The final output is a complete loading plan with a detailed breakdown of costs and performance.
+
+### **2. Problem Formulation**
+
+To tackle this computationally, we framed the problem using the classic state-space search model from Artificial Intelligence. The ship is represented as a full 3D grid, and the goal is to find the most efficient sequence of actions to load all containers.
+
+-   The ship is a **3D grid** of Bays (length), Rows (width), and Tiers (height).
+-   Each container has a `weight`, `destination port` (integer), and an initial `2D coordinate` in the yard.
+-   The task is to load all containers into the grid while respecting all constraints and minimizing a complex cost function.
+
+#### **2.1 AI Problem Formulation (5-tuple)**
+
+The problem can be described as a standard search problem `(S, s₀, A, T, G)`:
+
+*   **States (S):** Each state is a complete configuration of the loading operation.
+    `s = (ship_grid, yard_containers, ship_balance_metrics, accumulated_cost, path)`
+    *   `ship_grid`: A 3D NumPy array representing the placement of all containers.
+    *   `yard_containers`: A set of container IDs remaining in the yard.
+    *   `ship_balance_metrics`: Tracks the ship's Center of Mass (CoM).
+    *   `accumulated_cost`: The total loading cost (`g(n)`) incurred so far.
+    *   `path`: The sequence of actions taken to reach the current state.
+
+*   **Initial State (s₀):**
+    *   `ship_grid` is empty (filled with zeros).
+    *   `yard_containers` contains all containers to be loaded.
+    *   `accumulated_cost` is 0.
+
+*   **Actions (A):** Selecting an unloaded container and placing it in a valid 3D slot.
+    `a = Load(container, target_position(tier, bay, row))`
+
+*   **Transition Model (T):** Applying an action updates the state by:
+    *   Placing the container in the `ship_grid`.
+    *   Removing the container from `yard_containers`.
+    *   Updating the ship's balance metrics.
+    *   Increasing the `accumulated_cost`.
+
+*   **Goal Test (G):**
+    *   All containers are loaded (`yard_containers` is empty).
+    *   The path taken must have satisfied the hard **Balance Constraint** at every step.
+
+#### **2.2 Constraints**
+
+The solution enforces both hard constraints (must be satisfied) and soft constraints (guided by the heuristic).
+
+1.  **Balance Constraint (Hard):** The ship's Center of Mass (CoM) must remain within a predefined safety radius of the ship's geometric center at all times. Any move that violates this is illegal.
+2.  **Destination Stacking Constraint (Hard):** For any two containers in the same vertical stack where `C_upper` is on top of `C_lower`, it must be that `C_upper.destination <= C_lower.destination`. This prevents direct physical blocking.
+3.  **Placement Efficiency Constraint (Soft):** Containers for earlier ports should, "as far as possible," be placed closer to the ship's access point and in higher tiers. This is a strategic goal enforced by the search heuristic.
+
+### **3. Cost Modeling**
+
+Our objective function minimizes the **Total Lifecycle Cost**.
+
+`TotalLifecycleCost = LoadingCost + UnloadingCost`
+
+*   **Loading Cost (`g(n)`):** The known path cost, calculated from the crane's travel time (distance-based) and lifting effort (weight-based).
+    `ActionCost = (distance * time_per_meter) + (weight * time_per_ton)`
+
+*   **Unloading Cost:** A simulated cost calculated on a completed plan. It includes:
+    *   **Base Unload Cost:** The ideal time to unload every container.
+    *   **Shifting Penalty:** A large penalty for every container that directly blocks another, calculated as `(ShiftCost * shifting_penalty_multiplier)`.
+
+### **4. Input & Output**
+
+**Input File Format (input.json):** The problem is defined in a structured JSON file.
+```json
+{
+    "containers_manifest": [
+        { "id": "C001", "weight": 15, "destination": 3, "yard_coords": },
+        { "id": "C002", "weight": 10, "destination": 1, "yard_coords": }
+    ],
+    "ship_specification": {
+        "bays": 4, "rows": 4, "tiers": 3,
+        "max_com_deviation_radius": 1.2,
+        "unloading_access_point":
+    },
+    "operational_costs": { ... }
+}
